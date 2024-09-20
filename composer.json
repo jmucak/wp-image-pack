@@ -1,0 +1,19 @@
+{
+  "name": "jmucak/wp-on-demand-images",
+  "description": "On demand images",
+  "require": {
+    "php": ">=8.0"
+  },
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Josip Mucak"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "jmucak\\wpOnDemandImages\\": "src"
+    }
+  }
+}
