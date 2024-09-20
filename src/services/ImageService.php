@@ -3,7 +3,7 @@
 namespace jmucak\wpOnDemandImages\services;
 
 class ImageService {
-	private static ?ImageService $instance;
+	private static ?ImageService $instance = null;
 
 	private array $image_sizes = array();
 
@@ -23,9 +23,7 @@ class ImageService {
 			return false;
 		}
 
-		$this->image_sizes[ $size_name ] = array(
-			'size' => array( $size[0], $size[1] )
-		);
+		$this->image_sizes[ $size_name ] = $size;
 
 		return true;
 	}
