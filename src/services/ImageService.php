@@ -1,6 +1,6 @@
 <?php
 
-namespace jmucak\wpOnDemandImages\services;
+namespace jmucak\wpImagePack\services;
 
 class ImageService extends DirectoryService {
 	private array $image_sizes = array();

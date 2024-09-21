@@ -1,6 +1,6 @@
 <?php
 
-namespace jmucak\wpOnDemandImages\services;
+namespace jmucak\wpImagePack\services;
 
 use Exception;
 use WP_Filesystem_Direct;
