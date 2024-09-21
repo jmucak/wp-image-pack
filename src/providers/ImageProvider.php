@@ -9,6 +9,9 @@ class ImageProvider {
 
 	public function __construct( array $config = array() ) {
 		$this->config = $config;
+
+		$this->register();
+		$this->deregister();
 	}
 
 	public function register(): void {
@@ -20,20 +23,12 @@ class ImageProvider {
 	}
 
 	public function deregister(): void {
+		// Deregister custom image sizes
+		// NOTE: This can't remove core image sizes
 		if ( ! empty( $this->config['deregister_image_sizes'] ) ) {
-			add_action( 'intermediate_image_sizes_advanced', array( $this, 'deregister_image_sizes' ) );
-		}
-	}
-
-	public function deregister_image_sizes( array $sizes ): array {
-		foreach ( $sizes as $size ) {
-			if ( in_array( $size, $this->config['deregister_image_sizes'] ) ) {
-				unset( $sizes[ $size ] );
+			foreach ( $this->config['deregister_image_sizes'] as $image_size ) {
+				remove_image_size( $image_size );
 			}
 		}
-
-		return $sizes;
 	}
-
-
 }
