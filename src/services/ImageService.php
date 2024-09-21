@@ -97,12 +97,9 @@ class ImageService {
 		return $this->get_attachment_image_by_custom_size( $attachment_id, $size );
 	}
 
-	public function get_image_data( int $attachment_id, string|array $size ): array {
+	public function get_image_alt( int $attachment_id ): string {
 		$alt = trim( strip_tags( get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) );
 
-		return array(
-			'url' => $this->get_image_url( $attachment_id, $size ),
-			'alt' => ! empty( $alt ) ? $alt : sanitize_title( get_the_title( $attachment_id ) ),
-		);
+		return ! empty( $alt ) ? $alt : sanitize_title( get_the_title( $attachment_id ) );
 	}
 }
