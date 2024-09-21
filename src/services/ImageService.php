@@ -2,7 +2,35 @@
 
 namespace jmucak\wpImagePack\services;
 
-class ImageService extends DirectoryService {
+use Exception;
+
+class ImageService {
+	protected DirectoryService $directory_service;
+	public static array $instances = [];
+
+	// Protected constructor to prevent direct instantiation
+	protected function __construct() {
+		$this->directory_service = new DirectoryService();
+	}
+
+	public static function get_instance() {
+		$class = static::class; // Get the name of the current class
+		if ( ! isset( self::$instances[ $class ] ) ) {
+			self::$instances[ $class ] = new static();
+		}
+
+		return self::$instances[ $class ];
+	}
+
+	// Prevent cloning
+	protected function __clone() {
+	}
+
+	// Prevent unserialization
+	public function __wakeup() {
+		throw new Exception( 'Cannot unserialize a singleton.' );
+	}
+
 	private array $image_sizes = array();
 
 	// Register multiple sizes
@@ -79,5 +107,46 @@ class ImageService extends DirectoryService {
 		return array(
 			'url' => $url,
 		);
+	}
+
+	public function _get_image( int $attachment_id, ?array $size = array() ): string {
+		// if empty or not valid size, return full size image
+		if ( empty( $size ) ) {
+			return wp_get_attachment_url( $attachment_id );
+		}
+
+		$image_meta_data = wp_get_attachment_metadata( $attachment_id );
+		$image_file_name = $this->directory_service->get_image_file_name( basename( $image_meta_data['file'] ), $size );
+
+		if ( empty( $image_meta_data['file'] ) ) {
+			return '';
+		}
+
+		$image_file_path = $this->directory_service->get_image_path( $attachment_id ) . DIRECTORY_SEPARATOR . $image_file_name;
+
+		// If image exists return image url
+		if ( file_exists( $image_file_path ) ) {
+			return $this->directory_service->get_image_full_path( $attachment_id, $image_file_name );
+		}
+
+		// Check if images directory is writeable
+		if ( ! $this->directory_service->is_dir_writable() ) {
+			return '';
+		}
+
+		// Get WP Image Editor Instance
+		$image_path   = get_attached_file( $attachment_id );
+		$image_editor = wp_get_image_editor( $image_path );
+
+		if ( empty( $image_editor ) || is_wp_error() ) {
+			return wp_get_attachment_url( $attachment_id );
+		}
+
+
+		// Create new image
+		$image_editor->resize( $size[0], $size[1], $size[2] );
+		$image_editor->save( $image_file_path );
+
+		return $this->directory_service->get_image_full_path( $attachment_id, $image_file_name );
 	}
 }
