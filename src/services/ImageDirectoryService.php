@@ -2,10 +2,9 @@
 
 namespace jmucak\wpImagePack\services;
 
-use Exception;
 use WP_Filesystem_Direct;
 
-class DirectoryService {
+class ImageDirectoryService {
 
 	public function create_dir_if_not_exists(): string {
 		$path = $this->get_image_path();
@@ -23,7 +22,7 @@ class DirectoryService {
 			return '';
 		}
 
-		$folder_path = trailingslashit( $wp_upload_dir['basedir'] ) . 'wp-on-demand-images/';
+		$folder_path = trailingslashit( $wp_upload_dir['basedir'] ) . 'wp-image-pack/';
 
 		if ( empty( $path ) ) {
 			return $folder_path;
@@ -60,5 +59,46 @@ class DirectoryService {
 		$wp_filesystem_direct = new WP_Filesystem_Direct( false );
 
 		return $wp_filesystem_direct->rmdir( $this->get_image_path(), true );
+	}
+
+	public function get_image( int $attachment_id, ?array $size = array() ): string {
+		// if empty or not valid size, return full size image
+		if ( empty( $size ) ) {
+			return wp_get_attachment_url( $attachment_id );
+		}
+
+		$image_meta_data = wp_get_attachment_metadata( $attachment_id );
+		$image_file_name = $this->get_image_file_name( basename( $image_meta_data['file'] ), $size );
+
+		if ( empty( $image_meta_data['file'] ) ) {
+			return '';
+		}
+
+		$image_file_path = $this->get_image_path( $attachment_id ) . DIRECTORY_SEPARATOR . $image_file_name;
+
+		// If image exists return image url
+		if ( file_exists( $image_file_path ) ) {
+			return $this->get_image_full_path( $attachment_id, $image_file_name );
+		}
+
+		// Check if images directory is writeable
+		if ( ! $this->is_dir_writable() ) {
+			return '';
+		}
+
+		// Get WP Image Editor Instance
+		$image_path   = get_attached_file( $attachment_id );
+		$image_editor = wp_get_image_editor( $image_path );
+
+		if ( empty( $image_editor ) || is_wp_error($image_editor) ) {
+			return wp_get_attachment_url( $attachment_id );
+		}
+
+
+		// Create new image
+		$image_editor->resize( $size[0], $size[1], $size[2] );
+		$image_editor->save( $image_file_path );
+
+		return $this->get_image_full_path( $attachment_id, $image_file_name );
 	}
 }
