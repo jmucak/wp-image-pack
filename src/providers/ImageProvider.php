@@ -9,9 +9,6 @@ class ImageProvider {
 
 	public function __construct( array $config = array() ) {
 		$this->config = $config;
-
-		$this->register();
-		$this->deregister();
 	}
 
 	public function register(): void {
@@ -20,9 +17,7 @@ class ImageProvider {
 				ImageService::get_instance()->add_image_size( $size_name, $size );
 			}
 		}
-	}
 
-	public function deregister(): void {
 		// Deregister custom image sizes
 		// NOTE: This can't remove core image sizes
 		if ( ! empty( $this->config['deregister_image_sizes'] ) ) {
